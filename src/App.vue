@@ -83,10 +83,11 @@ const ARMOURPOSEBASEPATH = "https://cdn.jsdelivr.net/gh/lingshiyao/wukongpose/ar
  * nomove 指的是猴子在原地不动静止或者做动作
  */
 const originalPose: any = [
-  {
-    file: "Breakdance 1990_-1_105_move.fbx",
-    action: "街舞",
-  },
+  // TODO 删除
+  // {
+  //   file: "Breakdance 1990_-1_105_move.fbx",
+  //   action: "街舞",
+  // },
   {
     file: "Cartwheel_-1_106_move.fbx",
     action: "翻跟头",
@@ -139,10 +140,26 @@ const originalPose: any = [
     file: "Silly Dancing_-1_115_nomove.fbx",
     action: "接着奏乐接着舞",
   },
+  // TODO 删除
+  // {
+  //   file: "Stand To Freehang_-1_51_nomove.fbx",
+  //   action: "爬树",
+  // },
   {
-    file: "Stand To Freehang_-1_51_nomove.fbx",
-    action: "爬树",
-  }];
+    file: "Situps_-1_67_nomove.fbx",
+    action: "仰卧起坐",
+  },
+  // TODO 删除
+  // {
+  //   file: "Crawling_-1_54_move.fbx",
+  //   action: "菩萨救我",
+  // },
+  // TODO 删除
+  // {
+  //   file: "Hanging Idle_-1_141_nomove.fbx",
+  //   action: "挂在树上2",
+  // }
+  ];
 
 const armourPosePath = [
   {
@@ -150,20 +167,40 @@ const armourPosePath = [
     action: "站立",
   },
   {
-    file: "Female Locomotion Pose_-1_1_nomove.fbx",
-    action: "行走",
+    file: "Female Locomotion Pose1_-1_1_nomove.fbx",
+    action: "行走（无裙子）",
   },
   {
     file: "Body Block_31_103_nomove.fbx",
     action: "格挡",
   },
   {
-    file: "Walking_-1_29_move.fbx",
-    action: "走路",
+    file: "Walking1_-1_29_move.fbx",
+    action: "走路（无裙子）",
   },
   {
     file: "Disappointed_39_126_nomove.fbx",
     action: "买了块新手表",
+  },
+  {
+    file: "Male Sitting Pose_-1_1_nomove.fbx",
+    action: "睡了一觉（无裙子）",
+  },
+  {
+    file: "Drunk1_-1_75_move.fbx",
+    action: "喝醉了（无裙子）",
+  },
+  {
+    file: "Drinking_-1_266_nomove.fbx",
+    action: "喝了这杯酒啊（无裙子）"
+  },
+  {
+    file: "Jumping Up_6_7_nomove.fbx",
+    action: "大鹏展翅（无裙子）"
+  },
+  {
+    file: "Praying_-1_58_nomove.fbx",
+    action: "求佛（无裙子）"
   }];
 
 /**
@@ -401,7 +438,7 @@ function animate() {
 
   // move为false的时候，表示模型是原地不动的）
   if (controls && !move)
-    // 原地不动的模型转圈，是control更新来实现的，control里面有自动旋转的选项
+      // 原地不动的模型转圈，是control更新来实现的，control里面有自动旋转的选项
     controls.update();
 
   // move为false的时候，表示模型是在向各个方向移动，把摄像机一直顶着他
@@ -492,7 +529,7 @@ const clickChooseMaterial = (index: number) => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: white;
+  color: #ee9351;
   font-size: 10vw;
 }
 

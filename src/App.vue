@@ -159,28 +159,40 @@ const originalPose: any = [
   //   file: "Hanging Idle_-1_141_nomove.fbx",
   //   action: "挂在树上2",
   // }
-  ];
+];
 
 const armourPosePath = [
   {
-    file: "Standing Up_136_182_nomove.fbx",
-    action: "站立",
+    file: "Male Standing Pose Skirt01_-1_1_nomove.fbx",
+    action: "站立有裙子1（新增）",
+  },
+  {
+    file: "Male Standing Pose Skirt_-1_1_nomove.fbx",
+    action: "站立有裙子（新增）",
+  },
+  {
+    file: "Male Laying Pose_-1_1_nomove.fbx",
+    action: "斜躺着睡觉(新增)",
+  },
+  {
+    file: "Male Standing Pose1_-1_1_nomove.fbx",
+    action: "踩在石头上凹造型（新增）",
+  },
+  {
+    file: "Female Action Pose_-1_1_nomove.fbx",
+    action: "大战牛魔王（新增）",
+  },
+  {
+    file: "Female Crouch Pose_-1_1_nomove.fbx",
+    action: "刷一套猴拳（新增）",
   },
   {
     file: "Female Locomotion Pose1_-1_1_nomove.fbx",
     action: "行走（无裙子）",
   },
   {
-    file: "Body Block_31_103_nomove.fbx",
-    action: "格挡",
-  },
-  {
     file: "Walking1_-1_29_move.fbx",
     action: "走路（无裙子）",
-  },
-  {
-    file: "Disappointed_39_126_nomove.fbx",
-    action: "买了块新手表",
   },
   {
     file: "Male Sitting Pose_-1_1_nomove.fbx",
@@ -193,10 +205,6 @@ const armourPosePath = [
   {
     file: "Drinking_-1_266_nomove.fbx",
     action: "喝了这杯酒啊（无裙子）"
-  },
-  {
-    file: "Jumping Up_6_7_nomove.fbx",
-    action: "大鹏展翅（无裙子）"
   },
   {
     file: "Praying_-1_58_nomove.fbx",

@@ -7,7 +7,7 @@ import {Utils} from "./api/Utils";
 import {FlakesTexture} from "three/examples/jsm/textures/FlakesTexture";
 import {armourPosePath, originalPose, print} from "./api/AppConstance";
 
-// print()
+print()
 
 /**
  * fbx选中的帧数，-1播放动画，大于0固定某一帧
@@ -45,6 +45,10 @@ const SEPARATOR = "__________";
  */
 const progress = ref<string>();
 
+// const SCENE_BG_PATH = "https://cdn.jsdelivr.net/gh/lingshiyao/3dwukongprevbg/%E4%B8%A5%E8%82%83.PNG";
+// const SCENE_BG_PATH = "https://cdn.jsdelivr.net/gh/lingshiyao/3dwukongprevbg/%E8%87%AA%E7%84%B6.PNG"
+const SCENE_BG_PATH = "https://cdn.jsdelivr.net/gh/lingshiyao/3dwukongprevbg/%E5%B0%8A%E8%B4%B5.PNG"
+
 /**
  * 经典猴子的加载路径
  */
@@ -55,6 +59,7 @@ const ORIGINALPOSEBASEPATH = "https://cdn.jsdelivr.net/gh/lingshiyao/wukongpose/
  */
 const ARMOURPOSEBASEPATH = "https://cdn.jsdelivr.net/gh/lingshiyao/wukongpose/armour/";
 
+
 /**
  * 当前选中的模型路径，要么是原始猴子，要么是盔甲猴子
  */
@@ -63,7 +68,11 @@ let nowChooseModelPath = ARMOURPOSEBASEPATH;
 /**
  * 当前选中的模型名字，比如 Walking_-1_29_move.fbx
  */
-let modelFile = armourPosePath[0].file;
+// 0, 11
+let modelFile = armourPosePath[1].file;
+
+// 1, 10
+// let modelFile = armourPosePath[10].file;
 
 /**
  * 从文件名初始化参数，解析出选择的帧数frame，总帧数totalFrame，人物是静止不动还是移动的move
@@ -144,16 +153,17 @@ const initLight = (scene: THREE.Scene) => {
 }
 
 const getRender = (width: number, height: number) => {
-  const renderer = new THREE.WebGLRenderer({antialias: true});
+  const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(width, height);
   renderer.shadowMap.enabled = true;
+  renderer.setClearColor(0x000000, 0)
   return renderer;
 }
 
 const getScene = () => {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x000000);
+  // scene.background = new THREE.Color(0x00000000);
   scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000);
   return scene;
 }
@@ -161,15 +171,12 @@ const getScene = () => {
 const getCamera = (width: number, height: number) => {
   const camera = new THREE.PerspectiveCamera(45, width / height, 1, 2000);
   camera.position.set(100, 200, 300);
-
   return camera;
 }
 
 const getControl = (camera: any, renderer: any, wukongPos: any) => {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enabled = true;
-  controls.enableZoom = true;
-  controls.enableDamping = true;
   controls.target.set(wukongPos.x, wukongPos.y, wukongPos.z);
   controls.autoRotate = true;
   controls.autoRotateSpeed = 2;
@@ -215,14 +222,23 @@ const getGoldenMaterial = () => {
   return material;
 }
 
+const setSceneBg = (scene: THREE.Scene) => {
+  const loader = new THREE.TextureLoader();
+  loader.load(SCENE_BG_PATH, function (texture) {
+    scene.background = texture;
+  });
+}
+
 const init = async () => {
   const threeDiv: any = document.getElementById("3d")
   divWidth = threeDiv.clientWidth;
   divHeight = threeDiv.clientHeight;
+  console.log(divWidth, divHeight)
   renderer = getRender(divWidth, divHeight);
   threeDiv.appendChild(renderer.domElement);
   camera = getCamera(divWidth, divHeight);
   scene = getScene();
+  setSceneBg(scene);
   initLight(scene);
 
   // TODO 地面，可要可不要
@@ -230,6 +246,8 @@ const init = async () => {
 
   const loader = new FBXLoader();
   loader.setPath(nowChooseModelPath).load(modelFile, function (object) {
+    console.log(object, object.animations[0].duration)
+    totalTime = object.animations[0].duration;
 
     wukongModel = object;
     mixer = new THREE.AnimationMixer(object);
@@ -259,13 +277,12 @@ const init = async () => {
     // 把相机移到悟空身旁，并看向他
     camera.position.set(wukongModel.children[1].position.x + 150, wukongModel.children[1].position.y, wukongModel.children[1].position.z + 150);
     camera.lookAt(wukongModel.children[1].position);
-    camera.position.set(-130, 212.70391688, 68.8639);
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
 
     // 如果悟空是原地不动的静止或动画，则初始化control，好让control绕着悟空转
-    if (!move)
-      controls = getControl(camera, renderer, wukongModel.children[1].position);
+    // if (!move)
+    controls = getControl(camera, renderer, wukongModel.children[1].position);
   }, function (event) {
     // 打印进度条
     const p = event.loaded / event.total * 100;
@@ -278,40 +295,37 @@ const init = async () => {
   window.addEventListener('resize', onWindowResize);
 }
 
-const debugPrint = () => {
-  if (camera) {
-    console.log(camera.position)
-  }
-  if (controls) {
-    // console.log(controls.position)
-  }
-}
-
-const cx = 0;
-const cy = 0;
-const cz = 0;
-
 function onWindowResize() {
   camera.aspect = divWidth / divHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(divWidth, divHeight);
 }
 
+const count = 1;
+
+const test = 1.0;
+
 function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
 
-  debugPrint();
-
   // 当frame等于-1的时候，需要播放动画，动画需要通过mixer.update(delta)进行更新
   // delta如果大于悟空动画的总时间，则取模
-  if (frame == -1)
+  if (frame == -1 && startRecordControl) {
     if (mixer) mixer.update(delta);
+    if (Date.now() - startTime > totalTime * 1000 * count * test) {
+      startRecordControl = false;
+      recorder.stop();
+    }
+  }
+
+
+  // console.log(Date.now())
 
   // move为false的时候，表示模型是原地不动的）
-  if (controls && !move)
-      // 原地不动的模型转圈，是control更新来实现的，control里面有自动旋转的选项
-    controls.update();
+  // if (controls && !move)
+  // 原地不动的模型转圈，是control更新来实现的，control里面有自动旋转的选项
+  // controls.update();
 
   // move为false的时候，表示模型是在向各个方向移动，把摄像机一直顶着他
   if (camera && wukongModel && move) {
@@ -322,6 +336,8 @@ function animate() {
   }
   renderer.render(scene, camera);
 }
+
+
 
 /**
  * 把window.location.href里面的初始地址提出来
@@ -363,6 +379,58 @@ const clickChooseMaterial = (index: number) => {
   }
 }
 
+
+let recorder;
+
+let startTime = 0;
+
+let startRecordControl = false;
+
+let totalTime = 0;
+
+const StartRecord = () => {
+  const threeDiv: any = document.getElementById("3d");
+  const canvas = threeDiv.children[0];
+  const stream = canvas.captureStream(60);
+  recorder = new MediaRecorder(stream, {
+    audioBitsPerSecond: 128000,
+    videoBitsPerSecond: 2500000000,
+    mimeType: 'video/webm;codecs=vp8,opus'
+    // mimeType: 'video/mp4'
+    // mimeType: 'video/mp4'
+  });
+  console.log(recorder)
+  recorder.start();
+  startTime = Date.now();
+  startRecordControl = true;
+
+  recorder.ondataavailable = (e: any) => {
+    // console.log(e.data);
+    // const video = document.createElement("video");
+    // video.src = URL.createObjectURL(e.data);
+    // video.controls = true;
+    // document.body.appendChild(video);
+    saveAs(e.data, `${modelFile.split(".")[0]}`)
+  }
+}
+
+const saveAs = (blob, name) => {
+  let a = document.createElement("a");
+  a.download = name;
+  a.href = URL.createObjectURL(blob);
+  a.click();
+}
+
+// download MediaRecorder video
+const DownloadRecord = () => {
+  recorder.stop();
+}
+
+
+const StopRecord = () => {
+  recorder.stop();
+}
+
 </script>
 
 <template>
@@ -371,21 +439,18 @@ const clickChooseMaterial = (index: number) => {
       <div id="3d" class="threeD"></div>
       <div class="progress">{{ progress }}</div>
     </div>
-    <div class="line">
-      <div class="btn2" @click="clickChooseMaterial(0)">原始皮肤</div>
-      <div class="btn3" @click="clickChooseMaterial(1)">金色皮肤</div>
-      <!--      <div class="btn4" @click="chooseMaterial(2)">银色皮肤</div>-->
-    </div>
-    <div v-for="(item, index) in armourPosePath" :key="index">
-      <div class="btn" @click="clickChooseModel('armour', index)">齐天大圣-{{ item.action }}--{{item.rarity}}</div>
-    </div>
-    <div v-for="(item, index) in originalPose" :key="index">
-      <div class="btn" @click="clickChooseModel('original', index)">经典悟空-{{ item.action }}--{{item.rarity}}</div>
+    <div class="btns">
+      <div class="btn" @click="StartRecord">开始录制</div>
+      <div class="btn" @click="StopRecord">停止录制</div>
     </div>
   </div>
 </template>
 
 <style scoped>
+
+.btns {
+  /*background: #0000FF;*/
+}
 
 .line {
   display: flex;
@@ -393,7 +458,11 @@ const clickChooseMaterial = (index: number) => {
 }
 
 .base {
-  background: #333333;
+  /*background: #00FF00;*/
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
 }
 
 .progress {
@@ -409,7 +478,7 @@ const clickChooseMaterial = (index: number) => {
   background-color: #ee9351;
   border-radius: 0.63rem;
   height: 2.81rem;
-  width: 100vw;
+  width: 10vw;
   border: solid 0.063rem #000000;
   line-height: 2.81rem;
   color: #000000;
@@ -446,15 +515,17 @@ const clickChooseMaterial = (index: number) => {
 }
 
 .threeD {
-  width: 100vw;
-  height: 100vw;
-  background: #000000;
+  width: 1000px;
+  height: 1000px;
+  background-size: contain;
   position: absolute;
+  top: 0;
+  left: 0;
+  background: #000000;
 }
 
 .threeDBase {
-  width: 100vw;
-  height: 100vw;
-  background: #000000;
+  width: 1000px;
+  height: 1000px;
 }
 </style>

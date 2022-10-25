@@ -7,7 +7,7 @@ import {Utils} from "./api/Utils";
 import {FlakesTexture} from "three/examples/jsm/textures/FlakesTexture";
 import {armourPosePath, originalPose, print} from "./api/AppConstance";
 
-// print()
+print()
 
 /**
  * fbx选中的帧数，-1播放动画，大于0固定某一帧
@@ -55,15 +55,17 @@ const ORIGINALPOSEBASEPATH = "https://cdn.jsdelivr.net/gh/lingshiyao/wukongpose/
  */
 const ARMOURPOSEBASEPATH = "https://cdn.jsdelivr.net/gh/lingshiyao/wukongpose/armour/";
 
+
+
 /**
  * 当前选中的模型路径，要么是原始猴子，要么是盔甲猴子
  */
-let nowChooseModelPath = ARMOURPOSEBASEPATH;
+let nowChooseModelPath = ORIGINALPOSEBASEPATH;
 
 /**
  * 当前选中的模型名字，比如 Walking_-1_29_move.fbx
  */
-let modelFile = armourPosePath[0].file;
+let modelFile = originalPose[1].file;
 
 /**
  * 从文件名初始化参数，解析出选择的帧数frame，总帧数totalFrame，人物是静止不动还是移动的move
@@ -161,15 +163,12 @@ const getScene = () => {
 const getCamera = (width: number, height: number) => {
   const camera = new THREE.PerspectiveCamera(45, width / height, 1, 2000);
   camera.position.set(100, 200, 300);
-
   return camera;
 }
 
 const getControl = (camera: any, renderer: any, wukongPos: any) => {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enabled = true;
-  controls.enableZoom = true;
-  controls.enableDamping = true;
   controls.target.set(wukongPos.x, wukongPos.y, wukongPos.z);
   controls.autoRotate = true;
   controls.autoRotateSpeed = 2;
@@ -259,13 +258,12 @@ const init = async () => {
     // 把相机移到悟空身旁，并看向他
     camera.position.set(wukongModel.children[1].position.x + 150, wukongModel.children[1].position.y, wukongModel.children[1].position.z + 150);
     camera.lookAt(wukongModel.children[1].position);
-    camera.position.set(-130, 212.70391688, 68.8639);
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
 
     // 如果悟空是原地不动的静止或动画，则初始化control，好让control绕着悟空转
-    if (!move)
-      controls = getControl(camera, renderer, wukongModel.children[1].position);
+    // if (!move)
+    controls = getControl(camera, renderer, wukongModel.children[1].position);
   }, function (event) {
     // 打印进度条
     const p = event.loaded / event.total * 100;
@@ -278,19 +276,6 @@ const init = async () => {
   window.addEventListener('resize', onWindowResize);
 }
 
-const debugPrint = () => {
-  if (camera) {
-    console.log(camera.position)
-  }
-  if (controls) {
-    // console.log(controls.position)
-  }
-}
-
-const cx = 0;
-const cy = 0;
-const cz = 0;
-
 function onWindowResize() {
   camera.aspect = divWidth / divHeight;
   camera.updateProjectionMatrix();
@@ -301,25 +286,23 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
 
-  debugPrint();
-
   // 当frame等于-1的时候，需要播放动画，动画需要通过mixer.update(delta)进行更新
   // delta如果大于悟空动画的总时间，则取模
   if (frame == -1)
     if (mixer) mixer.update(delta);
 
   // move为false的时候，表示模型是原地不动的）
-  if (controls && !move)
-      // 原地不动的模型转圈，是control更新来实现的，control里面有自动旋转的选项
-    controls.update();
+  // if (controls && !move)
+  // 原地不动的模型转圈，是control更新来实现的，control里面有自动旋转的选项
+  controls.update();
 
   // move为false的时候，表示模型是在向各个方向移动，把摄像机一直顶着他
-  if (camera && wukongModel && move) {
-    camera.position.set(wukongModel.children[1].position.x + 70, wukongModel.children[1].position.y, wukongModel.children[1].position.z + 170);
-    camera.lookAt(wukongModel.children[1].position);
-    camera.updateProjectionMatrix();
-    camera.updateMatrixWorld();
-  }
+  // if (camera && wukongModel && move) {
+  //   camera.position.set(wukongModel.children[1].position.x + 70, wukongModel.children[1].position.y, wukongModel.children[1].position.z + 170);
+  //   camera.lookAt(wukongModel.children[1].position);
+  //   camera.updateProjectionMatrix();
+  //   camera.updateMatrixWorld();
+  // }
   renderer.render(scene, camera);
 }
 
@@ -371,17 +354,17 @@ const clickChooseMaterial = (index: number) => {
       <div id="3d" class="threeD"></div>
       <div class="progress">{{ progress }}</div>
     </div>
-    <div class="line">
-      <div class="btn2" @click="clickChooseMaterial(0)">原始皮肤</div>
-      <div class="btn3" @click="clickChooseMaterial(1)">金色皮肤</div>
-      <!--      <div class="btn4" @click="chooseMaterial(2)">银色皮肤</div>-->
-    </div>
-    <div v-for="(item, index) in armourPosePath" :key="index">
-      <div class="btn" @click="clickChooseModel('armour', index)">齐天大圣-{{ item.action }}--{{item.rarity}}</div>
-    </div>
-    <div v-for="(item, index) in originalPose" :key="index">
-      <div class="btn" @click="clickChooseModel('original', index)">经典悟空-{{ item.action }}--{{item.rarity}}</div>
-    </div>
+    <!--    <div class="line">-->
+    <!--      <div class="btn2" @click="clickChooseMaterial(0)">原始皮肤</div>-->
+    <!--      <div class="btn3" @click="clickChooseMaterial(1)">金色皮肤</div>-->
+    <!--      &lt;!&ndash;      <div class="btn4" @click="chooseMaterial(2)">银色皮肤</div>&ndash;&gt;-->
+    <!--    </div>-->
+    <!--    <div v-for="(item, index) in armourPosePath" :key="index">-->
+    <!--      <div class="btn" @click="clickChooseModel('armour', index)">齐天大圣-{{ item.action }}</div>-->
+    <!--    </div>-->
+    <!--    <div v-for="(item, index) in originalPose" :key="index">-->
+    <!--      <div class="btn" @click="clickChooseModel('original', index)">经典悟空-{{ item.action }}</div>-->
+    <!--    </div>-->
   </div>
 </template>
 
@@ -447,14 +430,14 @@ const clickChooseMaterial = (index: number) => {
 
 .threeD {
   width: 100vw;
-  height: 100vw;
+  height: 100vh;
   background: #000000;
-  position: absolute;
+  /*position: absolute;*/
 }
 
 .threeDBase {
   width: 100vw;
-  height: 100vw;
+  height: 100vh;
   background: #000000;
 }
 </style>

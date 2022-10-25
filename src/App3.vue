@@ -7,7 +7,7 @@ import {Utils} from "./api/Utils";
 import {FlakesTexture} from "three/examples/jsm/textures/FlakesTexture";
 import {armourPosePath, originalPose, print} from "./api/AppConstance";
 
-// print()
+print()
 
 /**
  * fbx选中的帧数，-1播放动画，大于0固定某一帧
@@ -144,35 +144,36 @@ const initLight = (scene: THREE.Scene) => {
 }
 
 const getRender = (width: number, height: number) => {
-  const renderer = new THREE.WebGLRenderer({antialias: true});
+  // const renderer = new THREE.WebGLRenderer({antialias: true});
+  const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(width, height);
   renderer.shadowMap.enabled = true;
+  renderer.setClearColor(0x000000, 0)
   return renderer;
 }
 
 const getScene = () => {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x000000);
+  // scene.background = new THREE.Color(0x000000);
   scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000);
   return scene;
 }
 
 const getCamera = (width: number, height: number) => {
   const camera = new THREE.PerspectiveCamera(45, width / height, 1, 2000);
-  camera.position.set(100, 200, 300);
-
+  // camera.position.set(-124, 59.729857185723343, 145.42322419131202);
   return camera;
 }
 
 const getControl = (camera: any, renderer: any, wukongPos: any) => {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enabled = true;
-  controls.enableZoom = true;
-  controls.enableDamping = true;
+  // controls.enableZoom = true;
+  // controls.enableDamping = true;
   controls.target.set(wukongPos.x, wukongPos.y, wukongPos.z);
   controls.autoRotate = true;
-  controls.autoRotateSpeed = 2;
+  controls.autoRotateSpeed = 5;
   controls.update();
   return controls;
 }
@@ -257,15 +258,21 @@ const init = async () => {
     scene.add(wukongModel);
 
     // 把相机移到悟空身旁，并看向他
-    camera.position.set(wukongModel.children[1].position.x + 150, wukongModel.children[1].position.y, wukongModel.children[1].position.z + 150);
     camera.lookAt(wukongModel.children[1].position);
-    camera.position.set(-130, 212.70391688, 68.8639);
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
 
     // 如果悟空是原地不动的静止或动画，则初始化control，好让control绕着悟空转
-    if (!move)
+    if (!move) {
       controls = getControl(camera, renderer, wukongModel.children[1].position);
+      const data = load();
+      if (data != null || data != undefined) {
+        const json = JSON.parse(data);
+        console.log(json)
+        controls.object.position.set(json.camerax, json.cameray, json.cameraz)
+        controls.target.set(json.controlx, json.controly, json.controlz);
+      }
+    }
   }, function (event) {
     // 打印进度条
     const p = event.loaded / event.total * 100;
@@ -280,11 +287,26 @@ const init = async () => {
 
 const debugPrint = () => {
   if (camera) {
-    console.log(camera.position)
+    // console.log(camera.position.x, camera.position.y, camera.position.z);
+    cameraX.value = camera.position.x;
+    cameraY.value = camera.position.y;
+    cameraZ.value = camera.position.z;
   }
   if (controls) {
-    // console.log(controls.position)
+    controlTargetX.value = controls.target.x;
+    controlTargetY.value = controls.target.y;
+    controlTargetZ.value = controls.target.z;
+    // console.log(controls, controls.object.position)
   }
+  if (wukongModel) {
+    wukongPosX.value = wukongModel.children[1].position.x;
+    wukongPosY.value = wukongModel.children[1].position.y;
+    wukongPosZ.value = wukongModel.children[1].position.z;
+  }
+
+  // if (wukongModel) {
+  //   console.log(wukongModel.children[1].position)
+  // }
 }
 
 const cx = 0;
@@ -315,7 +337,7 @@ function animate() {
 
   // move为false的时候，表示模型是在向各个方向移动，把摄像机一直顶着他
   if (camera && wukongModel && move) {
-    camera.position.set(wukongModel.children[1].position.x + 70, wukongModel.children[1].position.y, wukongModel.children[1].position.z + 170);
+    camera.position.set(wukongModel.children[1].position.x + 70, wukongModel.children[1].position.y, wukongModel.children[1].position.z + 280);
     camera.lookAt(wukongModel.children[1].position);
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
@@ -363,13 +385,180 @@ const clickChooseMaterial = (index: number) => {
   }
 }
 
+// 当前的坐标
+const cameraX = ref(0);
+const cameraY = ref(0);
+const cameraZ = ref(0);
+
+// 选取的坐标
+const chooseCameraX = ref(0);
+const chooseCameraY = ref(0);
+const chooseCameraZ = ref(0);
+
+const wukongPosX = ref(0);
+const wukongPosY = ref(0);
+const wukongPosZ = ref(0);
+
+const controlTargetX = ref(0);
+const controlTargetY = ref(0);
+const controlTargetZ = ref(0);
+
+const chooseControlTargetX = ref(0);
+const chooseControlTargetY = ref(0);
+const chooseControlTargetZ = ref(0);
+
+const save = (data) => {
+  localStorage.setItem(modelFile, data);
+}
+
+const load = () => {
+  return localStorage.getItem(modelFile);
+}
+
+addEventListener('keydown', (event) => {
+  if (event.key == 'e' && wukongModel && controls) {
+    console.log("print")
+    chooseCameraX.value = camera.position.x;
+    chooseCameraY.value = camera.position.y;
+    chooseCameraZ.value = camera.position.z;
+    chooseControlTargetX.value = controls.target.x;
+    chooseControlTargetY.value = controls.target.y;
+    chooseControlTargetZ.value = controls.target.z;
+    saveResult();
+  }
+});
+
+const saveAs = (blob, name) => {
+  let a = document.createElement("a");
+  a.download = name;
+  a.href = URL.createObjectURL(blob);
+  a.click();
+}
+
+const saveAsWithObject = (obj, fileName) => {
+  let blob = new Blob([new TextEncoder().encode(JSON.stringify(obj))], {type: "text/plain;charset=utf-8"});
+  saveAs(blob, fileName)
+}
+
+const saveResult = () => {
+  const result = {
+    camerax: chooseCameraX.value,
+    cameray: chooseCameraY.value,
+    cameraz: chooseCameraZ.value,
+    controlx: chooseControlTargetX.value,
+    controly: chooseControlTargetY.value,
+    controlz: chooseControlTargetZ.value,
+  }
+  let data = JSON.stringify(result);
+  save(data)
+  // let blob = new Blob([data], {type: "text/plain;charset=utf-8"});
+  // saveAs(blob, `${modelFile.split('.')[0]}.json`);
+}
+
+const downloadSingleFile = () => {
+  downloadSingleFileWithPose(originalPose);
+  downloadSingleFileWithPose(armourPosePath);
+}
+
+const downloadSingleFileWithPose = (pose) => {
+  for (let i = 0; i < pose.length; i++) {
+    const item = localStorage.getItem(pose[i].file);
+    if (item != null) {
+      const itemJson = JSON.parse(item);
+      console.log(pose[i].file.split('.')[0].split('_'))
+      console.log(itemJson)
+      const downloadFile = {
+        _model_camera_position: {
+          x: itemJson.camerax,
+          y: itemJson.cameray,
+          z: itemJson.cameraz,
+        },
+        _model_control_target: {
+          x: itemJson.controlx,
+          y: itemJson.controly,
+          z: itemJson.controlz,
+        },
+        _model_status: null
+      }
+      console.log(downloadFile)
+      saveAsWithObject(downloadFile, pose[i].file.split(".")[0] + ".json")
+    } else {
+      const downloadFile = {
+        _model_camera_position: null,
+        _model_control_target: null,
+        _model_status: 1
+      }
+      console.log(downloadFile)
+      saveAsWithObject(downloadFile, pose[i].file.split(".")[0] + ".json")
+    }
+  }
+}
+
+const downloadResult = () => {
+  let total = 0;
+  const result = [];
+  for (let i = 0; i < originalPose.length; i++) {
+    const item = localStorage.getItem(originalPose[i].file);
+    if (item != null) {
+      total++;
+      result.push({
+        file: originalPose[i].file,
+        value: JSON.parse(item)
+      });
+      console.log(item)
+    }
+  }
+  for (let i = 0; i < armourPosePath.length; i++) {
+    const item = localStorage.getItem(armourPosePath[i].file);
+    if (item != null) {
+      total++;
+      result.push({
+        file: armourPosePath[i].file,
+        value: JSON.parse(item)
+      });
+      console.log(item)
+    }
+  }
+  let blob = new Blob([new TextEncoder().encode(JSON.stringify(result))], {type: "text/plain;charset=utf-8"});
+  saveAs(blob, "result.json")
+  console.log(result)
+}
+downloadResult();
+
+// downloadSingleFile();
 </script>
 
 <template>
   <div class="base">
-    <div class="threeDBase">
+    <div class="bgtest1">
       <div id="3d" class="threeD"></div>
+    </div>
+    <div class="threeDBase">
       <div class="progress">{{ progress }}</div>
+      <div class="pos">打印坐标</div>
+      <div class="pos">camera positionX : {{ cameraX }}</div>
+      <div class="pos">camera positionY : {{ cameraY }}</div>
+      <div class="pos">camera positionX : {{ cameraZ }}</div>
+      <div class="pos">control positionX : {{ controlTargetX }}</div>
+      <div class="pos">control positionY : {{ controlTargetY }}</div>
+      <div class="pos">control positionZ : {{ controlTargetZ }}</div>
+      <div class="pos">截取坐标</div>
+      <div class="pos">camera positionX : {{ chooseCameraX }}</div>
+      <div class="pos">camera positionY : {{ chooseCameraY }}</div>
+      <div class="pos">camera positionX : {{ chooseCameraZ }}</div>
+      <div class="pos">wukong positionX : {{ wukongPosX }}</div>
+      <div class="pos">wukong positionY : {{ wukongPosY }}</div>
+      <div class="pos">wukong positionZ : {{ wukongPosZ }}</div>
+
+      <div class="pos">{{ chooseCameraX }},{{ chooseCameraY }},{{ chooseCameraZ }}</div>
+      <div class="pos">{{ controlTargetX }},{{ controlTargetY }},{{ controlTargetZ }}</div>
+
+
+
+      <div @click="downloadSingleFileWithPose(originalPose);">download o</div>
+      <div @click="downloadSingleFileWithPose(armourPosePath)">download a</div>
+
+
     </div>
     <div class="line">
       <div class="btn2" @click="clickChooseMaterial(0)">原始皮肤</div>
@@ -377,15 +566,25 @@ const clickChooseMaterial = (index: number) => {
       <!--      <div class="btn4" @click="chooseMaterial(2)">银色皮肤</div>-->
     </div>
     <div v-for="(item, index) in armourPosePath" :key="index">
-      <div class="btn" @click="clickChooseModel('armour', index)">齐天大圣-{{ item.action }}--{{item.rarity}}</div>
+      <div class="btn" @click="clickChooseModel('armour', index)">齐天大圣-{{ item.action }}--{{ item.rarity }}</div>
     </div>
     <div v-for="(item, index) in originalPose" :key="index">
-      <div class="btn" @click="clickChooseModel('original', index)">经典悟空-{{ item.action }}--{{item.rarity}}</div>
+      <div class="btn" @click="clickChooseModel('original', index)">经典悟空-{{ item.action }}--{{ item.rarity }}</div>
     </div>
   </div>
 </template>
 
 <style scoped>
+
+.bgtest1 {
+  width: 592px;
+  height: 1280px;
+  background: url(./assets/testbg10.JPG);
+}
+
+.pos {
+  color: #FFFFFF;
+}
 
 .line {
   display: flex;
@@ -445,16 +644,27 @@ const clickChooseMaterial = (index: number) => {
   color: #858585;
 }
 
+.position {
+  color: #ee9351;
+}
+
 .threeD {
-  width: 100vw;
-  height: 100vw;
-  background: #000000;
+  width: 592px;
+  /*width: 296px;*/
+  height: 888px;
+  /*height: 444px;*/
+  /*background: #00ff00;*/
   position: absolute;
+  /*border: 1px solid yellow;*/
+  margin-top: 71px;
+  /*margin-top: 244px;*/
 }
 
 .threeDBase {
   width: 100vw;
-  height: 100vw;
-  background: #000000;
+  height: 90vh;
+  background: #444444;
+  display: flex;
+  flex-direction: column;
 }
 </style>
